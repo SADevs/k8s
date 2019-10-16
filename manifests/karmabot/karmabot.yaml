@@ -1,0 +1,56 @@
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: karmabot-pvc
+  namespace: sadevs
+spec:
+  storageClassName: freenas-nfs
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1000Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: karmabot-deployment
+  namespace: sadevs
+  labels:
+    app: karmabot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: karmabot
+  template:
+    metadata:
+      labels:
+        app: karmabot
+    spec:
+      containers:
+      - name: karmabot
+        image: kamaln7/karmabot:latest
+        env:
+        - name: 'KB_DB'
+          value: '/k8s-volume/karma.sqlite'
+        - name: 'KB_SELFKARMA'
+          value: 'False'
+        - name: 'KB_REACTJI'
+          value: 'False'
+        - name: 'KB_TOKEN'
+          valueFrom:
+            secretKeyRef:
+              name: karmabot-secret
+              key: token
+        ports:
+        - containerPort: 80
+          name: karmabot-http
+        volumeMounts:
+            - mountPath: "/k8s-volume"
+              name: karmabot-pvc
+      volumes:
+        - name: karmabot-pvc
+          persistentVolumeClaim:
+            claimName: karmabot-pvc
