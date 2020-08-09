@@ -10,7 +10,7 @@ spec:
     - ReadWriteMany
   resources:
     requests:
-      storage: 1000Mi
+      storage: 50mi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -30,24 +30,24 @@ spec:
         app: karmabot
     spec:
       containers:
-      - name: karmabot
-        image: kamaln7/karmabot:latest
-        env:
-        - name: 'KB_DB'
-          value: '/k8s-volume/karma.sqlite'
-        - name: 'KB_SELFKARMA'
-          value: 'False'
-        - name: 'KB_REACTJI'
-          value: 'False'
-        - name: 'KB_TOKEN'
-          valueFrom:
-            secretKeyRef:
-              name: karmabot-secret
-              key: token
-        ports:
-        - containerPort: 80
-          name: karmabot-http
-        volumeMounts:
+        - name: karmabot
+          image: kamaln7/karmabot:latest
+          env:
+            - name: 'KB_DB'
+              value: '/k8s-volume/karma.sqlite'
+            - name: 'KB_SELFKARMA'
+              value: 'False'
+            - name: 'KB_REACTJI'
+              value: 'False'
+            - name: 'KB_TOKEN'
+              valueFrom:
+                secretKeyRef:
+                  name: karmabot-secret
+                  key: token
+          ports:
+            - containerPort: 80
+              name: karmabot-http
+          volumeMounts:
             - mountPath: "/k8s-volume"
               name: karmabot-pvc
       volumes:
