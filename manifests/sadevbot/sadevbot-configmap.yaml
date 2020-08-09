@@ -1,0 +1,21 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sadevbot-config
+  namespace: sadevs
+data:
+  BOT_DIR: '/k8s-volume'
+  BOT_ADMINS: &BOT_ADMINS '@drlordrevandrew,@gtmanfred,@redrobot,@bigjonroberts'
+  BOT_ALT_PREFIXES: '@sadevbot'
+  TOPIC_CHANNEL: '#topic-a-day'
+  TOPIC_DAYS: 'monday,wednesday,friday'
+  THREADED_COMMANDS: 'log tail,status plugins,status'
+  PLUGIN_REPOS: 'topic-a-day,https://github.com/andrewthetechie/err-topic-a-day.git,aherrington/fix-multi-posts;anonymous-report,https://github.com/andrewthetechie/err-anonymous-report.git,master;'
+  REPORT_CHANNEL: "#admins"
+  access_controls.json: |
+    {
+      'Plugins:*': { 'allowusers': *BOT_ADMINS },
+      'Health:*': { 'allowusers': *BOT_ADMINS },
+      'Utils:*': { 'allowusers': *BOT_ADMINS }
+    }
