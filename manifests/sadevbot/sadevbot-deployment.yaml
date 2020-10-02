@@ -9,7 +9,7 @@ spec:
     - ReadWriteMany
   resources:
     requests:
-      storage: 500Mi
+      storage: 1Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -29,60 +29,75 @@ spec:
         app: sadevbot
     spec:
       containers:
-        - name: sadevbot
-          image: andrewthetechie/errbot-k8s:latest
-          imagePullPolicy: Always
-          env:
-            - name: 'BOT_DIR'
-              valueFrom:
-                configMapKeyRef:
-                  name: sadevbot-config
-                  key: BOT_DIR
-            - name: 'BOT_ADMINS'
-              valueFrom:
-                configMapKeyRef:
-                  name: sadevbot-config
-                  key: BOT_ADMINS
-            - name: 'PLUGIN_REPOS'
-              valueFrom:
-                configMapKeyRef:
-                  name: sadevbot-config
-                  key: PLUGIN_REPOS
-            - name: 'BOT_ALT_PREFIXES'
-              valueFrom:
-                configMapKeyRef:
-                  name: sadevbot-config
-                  key: BOT_ALT_PREFIXES
-            - name: 'TOPIC_CHANNEL'
-              valueFrom:
-                configMapKeyRef:
-                  name: sadevbot-config
-                  key: TOPIC_CHANNEL
-            - name: 'REPORT_CHANNEL'
-              valueFrom:
-                configMapKeyRef:
-                  name: sadevbot-config
-                  key: REPORT_CHANNEL
-            - name: 'TOPIC_DAYS'
-              valueFrom:
-                configMapKeyRef:
-                  name: sadevbot-config
-                  key: TOPIC_DAYS
-            - name: 'ACCESS_CONTROL_FILE'
-              value: '/config/access_controls.json'
-            - name: 'SLACK_TOKEN'
-              valueFrom:
-                secretKeyRef:
-                  name: sadevbot-secret
-                  key: token
-          ports:
-            - containerPort: 80
-              name: sadevbot-http
-          volumeMounts:
+      - name: sadevbot
+        image: andrewthetechie/errbot-k8s:latest
+        imagePullPolicy: Always
+        env:
+        - name: 'BOT_MODE'
+          valueFrom:
+            configMapKeyRef:
+              name: sadevbot-config 
+              key: BOT_MODE
+        - name: 'BOT_DIR'
+          valueFrom:
+            configMapKeyRef:
+              name: sadevbot-config 
+              key: BOT_DIR
+        - name: 'BOT_ADMINS'
+          valueFrom:
+            configMapKeyRef:
+              name: sadevbot-config 
+              key: BOT_ADMINS
+        - name: 'LOG_LEVEL'
+          valueFrom:
+            configMapKeyRef:
+              name: sadevbot-config 
+              key: LOG_LEVEL
+        - name: 'PLUGIN_REPOS'
+          valueFrom:
+            configMapKeyRef:
+              name: sadevbot-config 
+              key: PLUGIN_REPOS
+        - name: 'BOT_ALT_PREFIXES'
+          valueFrom:
+            configMapKeyRef:
+              name: sadevbot-config 
+              key: BOT_ALT_PREFIXES
+        - name: 'TOPIC_CHANNEL'
+          valueFrom:
+            configMapKeyRef:
+              name: sadevbot-config 
+              key: TOPIC_CHANNEL
+        - name: 'REPORT_CHANNEL'
+          valueFrom:
+            configMapKeyRef:
+              name: sadevbot-config 
+              key: REPORT_CHANNEL
+        - name: 'TOPIC_SCHEDULE'
+          valueFrom:
+            configMapKeyRef:
+              name: sadevbot-config 
+              key: TOPIC_SCHEDULE
+        - name: 'TOPIC_TZ'
+          valueFrom:
+            configMapKeyRef:
+              name: sadevbot-config 
+              key: TOPIC_TZ
+        - name: 'ACCESS_CONTROL_FILE'
+          value: '/config/access_controls.json'
+        - name: 'SLACK_TOKEN'
+          valueFrom:
+            secretKeyRef:
+              name: sadevbot-secret
+              key: token
+        ports:
+        - containerPort: 80
+          name: sadevbot-http
+        volumeMounts:
             - mountPath: "/k8s-volume"
               name: sadevbot-pvc
-            - name: tz-central
-              mountPath: /etc/localtime
+              #- name: tz-central
+              #mountPath: /etc/localtime
             - name: config
               mountPath: /config
       volumes:
@@ -93,8 +108,12 @@ spec:
           configMap:
             name: sadevbot-config
             items:
+              - key: plugins.json
+                path: plugins.json
               - key: access_controls.json
                 path: access_controls.json
-        - name: tz-central
-          hostPath:
-            path: /usr/share/zoneinfo/US/Central
+              - key: extra-requirements.txt
+                path: extra-requirements.txt
+                #- name: tz-central
+                # hostPath:
+                #path: /usr/share/zoneinfo/US/Central
