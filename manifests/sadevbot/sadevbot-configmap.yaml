@@ -5,17 +5,26 @@ metadata:
   namespace: sadevs
 data:
   BOT_DIR: '/k8s-volume'
-  BOT_MODE: 'SlackRTM'
-  BOT_ADMINS: &BOT_ADMINS '@drlordrevandrew,@gtmanfred,@redrobot,@bigjonroberts'
+  BOT_MODE: 'SlackExtended'
+  MONO_PLUGIN_REQ_INSTALL: 'False'
+  INSTALL_DEPS: 'False'
+  #BOT_ADMINS: &BOT_ADMINS '@drlordrevandrew,@gtmanfred,@redrobot,@bigjonroberts'
+  BOT_ADMINS: &BOT_ADMINS '@drlordrevandrew'
   BOT_ALT_PREFIXES: '@sadevbot'
+  BOT_CORE_PLUGINS: 'ACLs,Help,Utils,LocalWebserver'
+  CHANMON_CHANNEL: '#channel-action-log'
   LOG_LEVEL: "debug"
-  TOPIC_CHANNEL: '#topic-a-day'
-  TOPIC_SCHEDULE: '0 14 * * 0,2,4'
-  TOPIC_TZ: 'US/Central'
+  TAD_CHANNEL: '#topic-a-day'
+  TAD_SCHEDULE: '0 14 * * 0,2,4'
+  TAD_APSCHEDULER_CONFIG_FILE: '/config/apscheduler-config.json'
+  TAD_ENABLE_WEBHOOK: 'True'
   THREADED_COMMANDS: 'log tail,status plugins,status'
   REPORT_CHANNEL: "#admins"
+  DONATION_MANAGER_REPORT_CHANNEL: "#sadevs-season-of-giving-2020"
+  DONATION_MANAGER_CHANNEL: "#admins"
   extra-requirements.txt: |
-    errbot[slack-rtm]
+          sqlalchemy
+          #    errbot[slack-rtm]
   access_controls.json: |
     {
       'Plugins:*': { 'allowusers': *BOT_ADMINS },
@@ -24,17 +33,36 @@ data:
     }
   plugins.json: |
         {
-                "git_repos": [{
-                        "name": "sadevbot-plugins",
-                        "url": "https://github.com/SADevs/sadevbot-plugins.git",
-                        "branch": "v0.2"
-                }, {
-                        "name": "topic-a-day",
-                        "url": "https://github.com/andrewthetechie/err-topic-a-day.git",
-                        "branch": "v0.2"
-                }, {
-                        "name": "anonymous-report",
-                        "url": "https://github.com/andrewthetechie/err-anonymous-report.git",
-                        "branch": "master"
-                }]
+                "plugins": {
+                        "git_repos": [{
+                                "name": "sadevbot-plugins",
+                                "url": "https://github.com/SADevs/sadevbot-plugins.git",
+                                "branch": "v0.4"
+                        }, {
+                                "name": "topic-a-day",
+                                "url": "https://github.com/andrewthetechie/err-topic-a-day.git",
+                                "branch": "v0.3"
+                        }, {
+                                "name": "anonymous-report",
+                                "url": "https://github.com/andrewthetechie/err-anonymous-report.git",
+                                "branch": "master"
+                        }]
+                },
+                "backends": {
+                        "git_repos": [
+                                {
+                                        "name": "SlackExtended",
+                                        "url": "https://github.com/andrewthetechie/err-slackextendedbackend.git",
+                                        "branch": "v0.1"
+                                }
+                        ]
+                }
+        }
+  apscheduler-config.json: |
+        {
+          "apscheduler.jobstores.default": {
+                  "type": "sqlalchemy",
+                  "url": "sqlite:////k8s-volume/data/apscheduler-jobs.sqlite"
+          },
+          "apscheduler.timezone": "US/Central"
         }

@@ -19,6 +19,8 @@ metadata:
   labels:
     app: sadevbot
 spec:
+  strategy:
+    type: Recreate
   replicas: 1
   selector:
     matchLabels:
@@ -32,78 +34,50 @@ spec:
       - name: sadevbot
         image: andrewthetechie/errbot-k8s:latest
         imagePullPolicy: Always
+        lifecycle:
+          postStart:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - git config --global user.email "sadevbot@sanantoniodevs.com"&& git config --global user.name "SADevBot" && ssh-keyscan github.com >> ~/.ssh/known_hosts && cp /var/ssh-keys/website-deploy-key /root/.ssh/id_ed25519
+        envFrom:
+        - configMapRef:
+            name: sadevbot-config
         env:
-        - name: 'BOT_MODE'
-          valueFrom:
-            configMapKeyRef:
-              name: sadevbot-config 
-              key: BOT_MODE
-        - name: 'BOT_DIR'
-          valueFrom:
-            configMapKeyRef:
-              name: sadevbot-config 
-              key: BOT_DIR
-        - name: 'BOT_ADMINS'
-          valueFrom:
-            configMapKeyRef:
-              name: sadevbot-config 
-              key: BOT_ADMINS
-        - name: 'LOG_LEVEL'
-          valueFrom:
-            configMapKeyRef:
-              name: sadevbot-config 
-              key: LOG_LEVEL
-        - name: 'PLUGIN_REPOS'
-          valueFrom:
-            configMapKeyRef:
-              name: sadevbot-config 
-              key: PLUGIN_REPOS
-        - name: 'BOT_ALT_PREFIXES'
-          valueFrom:
-            configMapKeyRef:
-              name: sadevbot-config 
-              key: BOT_ALT_PREFIXES
-        - name: 'TOPIC_CHANNEL'
-          valueFrom:
-            configMapKeyRef:
-              name: sadevbot-config 
-              key: TOPIC_CHANNEL
-        - name: 'REPORT_CHANNEL'
-          valueFrom:
-            configMapKeyRef:
-              name: sadevbot-config 
-              key: REPORT_CHANNEL
-        - name: 'TOPIC_SCHEDULE'
-          valueFrom:
-            configMapKeyRef:
-              name: sadevbot-config 
-              key: TOPIC_SCHEDULE
-        - name: 'TOPIC_TZ'
-          valueFrom:
-            configMapKeyRef:
-              name: sadevbot-config 
-              key: TOPIC_TZ
         - name: 'ACCESS_CONTROL_FILE'
           value: '/config/access_controls.json'
         - name: 'SLACK_TOKEN'
           valueFrom:
             secretKeyRef:
               name: sadevbot-secret
-              key: token
+              key: slack-token
+        - name: 'GITHUB_TOKEN'
+          valueFrom:
+            secretKeyRef:
+              name: sadevbot-secret
+              key: github-token
         ports:
         - containerPort: 80
           name: sadevbot-http
         volumeMounts:
             - mountPath: "/k8s-volume"
               name: sadevbot-pvc
-              #- name: tz-central
-              #mountPath: /etc/localtime
             - name: config
               mountPath: /config
+            - name: website-deploy-key
+              mountPath: /var/ssh-keys
       volumes:
         - name: sadevbot-pvc
           persistentVolumeClaim:
             claimName: sadevbot-pvc
+        - name: website-deploy-key
+          secret:
+            secretName: sadevbot-secret
+            items:
+            - key: website-deploy-key
+              path: website-deploy-key 
+              mode: 0600
         - name: config
           configMap:
             name: sadevbot-config
@@ -114,6 +88,5 @@ spec:
                 path: access_controls.json
               - key: extra-requirements.txt
                 path: extra-requirements.txt
-                #- name: tz-central
-                # hostPath:
-                #path: /usr/share/zoneinfo/US/Central
+              - key: apscheduler-config.json
+                path: apscheduler-config.json
