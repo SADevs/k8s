@@ -37,7 +37,7 @@ data:
                         "git_repos": [{
                                 "name": "sadevbot-plugins",
                                 "url": "https://github.com/SADevs/sadevbot-plugins.git",
-                                "branch": "v0.4"
+                                "branch": "v0.4.1"
                         }, {
                                 "name": "topic-a-day",
                                 "url": "https://github.com/andrewthetechie/err-topic-a-day.git",
